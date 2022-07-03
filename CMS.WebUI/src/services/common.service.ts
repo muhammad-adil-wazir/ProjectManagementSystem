@@ -1,7 +1,7 @@
 import axios from "axios";
 import authHeader from "./auth-header";
 export const API_BASE_URL = "http://localhost:3300/";
-const API_URL = "http://localhost:3300/api/";
+const API_URL = "https://college-management-system1.herokuapp.com/api/";
 
 export const Get = (url: any) => {
     return axios.get(API_URL + url, { headers: authHeader() });
