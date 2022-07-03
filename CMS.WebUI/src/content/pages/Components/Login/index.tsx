@@ -7,7 +7,7 @@ import { Profile } from '../../../../types/profile.type';
 import { object, string, number, TypeOf } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import PageTitleWrapper from '../../../../components/PageTitleWrapper';
-import { Button, IconButton, Container, Grid, Card, CardHeader, CardContent, Divider, Autocomplete } from '@mui/material';
+import { Button, IconButton, Container, Grid, Card, CardHeader, CardContent, Divider, Autocomplete, Snackbar, Alert } from '@mui/material';
 import Footer from '../../../../components/Footer';
 
 import Box from '@mui/material/Box';
@@ -22,9 +22,10 @@ const label = { inputProps: { 'aria-label': 'Switch demo' } };
 function LoginForm() {
     logout();
     let navigate = useNavigate();
-    const [loading, setLoading] = useState<boolean>(false);
-    const [message, setMessage] = useState<string>("");
-    const [profile, setProfile] = useState<any>();
+    const [openSuccessAlert, setopenSuccessAlert] = useState<boolean>(false);
+    const [openErrorAlert, setopenErrorAlert] = useState<boolean>(false);
+    const [messageSuccess, setMessageSuccess] = useState<string>("");
+    const [messageErorr, setMessageError] = useState<string>("");
     const initialValues: {
         username: string;
         password: string;
@@ -62,13 +63,10 @@ function LoginForm() {
 
     const handlePreLogin = (formValue: { username: string; password: string }) => {
         const { username, password } = formValue;
-        setMessage("");
-        setLoading(true);
         Post('user/login', formValue).then(
             (response: any) => {
                 debugger;
                 if (response.data.token) {
-                    setProfile(response.data);
                     let profile: Profile = {
                        UserID: response.data.userId,
                        UserName: response.data.userName,
@@ -77,10 +75,10 @@ function LoginForm() {
                        DepartmentID: response.data.departmentId,
                     };
                     ProfileService.setProfile(profile);
+                    setMessageSuccess("Welcome to College Dashboad!");
+                    setopenSuccessAlert(true);
                     return navigate("/");
-                    /*localStorage.setItem("user", JSON.stringify(response.data))*/;
                 }
-                //window.location.href='/';
             },
             (error: any) => {
                 const resMessage =
@@ -89,14 +87,30 @@ function LoginForm() {
                         error.response.data.message) ||
                     error.message ||
                     error.toString();
-                setLoading(false);
-                setMessage(resMessage);
+                    setMessageError("User name or password is invalid!");
+                    setopenErrorAlert(true);
             }
         );
     };
-    
+    const handleAlertClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setopenSuccessAlert(false);
+        setopenErrorAlert(false);
+    };
     return (
         <>
+        <Snackbar open={openSuccessAlert} autoHideDuration={5000} onClose={handleAlertClose}>
+                <Alert onClose={handleAlertClose} variant="filled" severity="success" sx={{ width: '100%' }}>
+                    {messageSuccess}
+                </Alert>
+            </Snackbar>
+            <Snackbar open={openErrorAlert} autoHideDuration={5000} onClose={handleAlertClose}>
+                <Alert onClose={handleAlertClose} variant="filled" severity="error" sx={{ width: '100%' }}>
+                    {messageErorr}
+                </Alert>
+            </Snackbar>
             <Container maxWidth="sm">
                 <PageTitleWrapper>
                     <PageTitle
