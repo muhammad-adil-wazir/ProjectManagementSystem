@@ -20,8 +20,10 @@ import { profile } from 'console';
 const label = { inputProps: { 'aria-label': 'Switch demo' } };
 
 function LoginForm() {
+    // logout user when he lands to login page
     logout();
     let navigate = useNavigate();
+    // using state hooks to set and get variables data
     const [openSuccessAlert, setopenSuccessAlert] = useState<boolean>(false);
     const [openErrorAlert, setopenErrorAlert] = useState<boolean>(false);
     const [messageSuccess, setMessageSuccess] = useState<string>("");
@@ -37,7 +39,7 @@ function LoginForm() {
         username: string;
         password: string;
     };
-
+    // using zod library for validation
     const validationSchema = object({
         username: string().nonempty('Username is required')
             .min(2, 'Username must be at least 2 characters')
@@ -47,7 +49,7 @@ function LoginForm() {
             .min(6, 'Password must be at least 6 characters')
             .max(40, 'Password must not exceed 40 characters'),
     });
-
+    // using useForm hook for submit form
     const {
         register,
         formState: { errors },
@@ -63,10 +65,11 @@ function LoginForm() {
 
     const handlePreLogin = (formValue: { username: string; password: string }) => {
         const { username, password } = formValue;
+        // using post method from common service to authenticate user
         Post('user/login', formValue).then(
             (response: any) => {
-                debugger;
                 if (response.data.token) {
+                    // if user is authenticated, then saves its profile in local storage
                     let profile: Profile = {
                        UserID: response.data.userId,
                        UserName: response.data.userName,
@@ -77,6 +80,7 @@ function LoginForm() {
                     ProfileService.setProfile(profile);
                     setMessageSuccess("Welcome to College Dashboad!");
                     setopenSuccessAlert(true);
+                    // navigate user to dashboard after successfull login
                     return navigate("/");
                 }
             },
@@ -87,6 +91,7 @@ function LoginForm() {
                         error.response.data.message) ||
                     error.message ||
                     error.toString();
+                    // show error to the user if username or password is wrong
                     setMessageError("User name or password is invalid!");
                     setopenErrorAlert(true);
             }
@@ -101,6 +106,7 @@ function LoginForm() {
     };
     return (
         <>
+        {/*  using snackbar material component wit alert component to show alerts*/}
         <Snackbar open={openSuccessAlert} autoHideDuration={5000} onClose={handleAlertClose}>
                 <Alert onClose={handleAlertClose} variant="filled" severity="success" sx={{ width: '100%' }}>
                     {messageSuccess}
@@ -161,6 +167,7 @@ function LoginForm() {
                                                     label="Password"
                                                     type="password"
                                                     autoComplete="current-password"
+                                                    
                                                     {...register('password')} fullWidth
                                                     error={!!errors['password']}
                                                     helperText={errors['password'] ? errors['password'].message : ''}

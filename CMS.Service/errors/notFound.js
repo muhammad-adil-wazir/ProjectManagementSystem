@@ -1,3 +1,4 @@
+// custom error handler class to throw not found error
 class ResultNotFoundError extends Error {
   constructor(message) {
     super(message);

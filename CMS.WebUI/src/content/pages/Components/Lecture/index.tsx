@@ -20,6 +20,7 @@ function not(a: readonly LectureModel[], b: readonly LectureModel[]) {
   }
 
 const Lecture = () => {
+  // using useState hook to set and get variables data
     const [allowedCredit,setAllowedCredit] = useState<number>(0);
     const [selectedCredit,setSelectedCredit] = useState<number>(0);
     const [hideLecturePage, setHideLecturePage] = useState<boolean>(false);
@@ -27,36 +28,48 @@ const Lecture = () => {
     const [openErrorAlert, setopenErrorAlert] = useState<boolean>(false);
     const [messageSuccess, setMessageSuccess] = useState<string>("");
     const [messageErorr, setMessageError] = useState<string>("");
-
     const [isAdmin, setAdmin] = useState<boolean>(false);
     const [availableLectures, setAvailableLectures] = useState<LectureModel[]>([]);
     const [selectedLectures, setSelectedLectures] = useState<LectureModel[]>([]);
     const [departments, setDepartments] = useState<DepartmentModel[]>([]);
     const [selectedDepartment, setSelectedDepartment] = useState<DepartmentModel>({departmentName:''});
-    const [rerenderTableFlag, setrerenderTableFlag] = useState<boolean>(false);
-    const userFormFunc = useRef<any>(null)
+    const [checked, setChecked] = useState<readonly LectureModel[]>([]);
+    const leftChecked = intersection(checked, availableLectures);
+    const rightChecked = intersection(checked, selectedLectures);
+    // get user profile from profile service
     const _profile = ProfileService.getProfile();
+    // this useEffect will be called once page is rendered
     useEffect(() => {
+      // calling department service to get all departments
      DepartmentService.getAllDepartments().then(x => setDepartments(x) );
     },[]);
+    // this useEffect will be called after getting departments from API
     useEffect(() => {
+      // if API returns department
       if(departments.length > 0){
+        // set logged in user department in the dropdown
         setSelectedDepartment(departments.filter(x => x._id == _profile?.DepartmentID)[0]);
+        // if user profile data is saved in the local storage
       if(_profile){
         if(_profile.RoleID == 1){
           setAdmin(true);
+          // set max allowed limit if user is an admin
           setAllowedCredit(64);
         }
         else if(_profile.RoleID == 2){
+          // set max allowed limit if user is a teacher
           setAllowedCredit(64);
+          // This method will set all available and selected lectures
           loadLecturesForTeacherAndAdmin(_profile.DepartmentID);
       }
         else if(_profile.RoleID == 3){
+          // role id 3 is for students, call user service to get student data from API
           UserService.getUserById(_profile.UserID).then(x => {
             let _selectedLectures = x[0].lectures!;
             setSelectedLectures(_selectedLectures);
             let _selectedCredit = x[0].lectures!.reduce((accumulator, current) => accumulator + current.credit, 0);
             setSelectedCredit(_selectedCredit);
+            // calling department service to get lectures for this user
             DepartmentService.getDepartmentByID(_profile.DepartmentID).then(availableLecs => {
               let _selectedLectureIDs = _selectedLectures.map(x => x._id);
               let _availableLectures: LectureModel[] = new Array();
@@ -67,6 +80,7 @@ const Lecture = () => {
               }
               setAvailableLectures(_availableLectures);
             });
+            // setting max credit limit for students based on their GPA
             if(x[0].gpa >= 3.5){
               setAllowedCredit(40);
             }
@@ -81,6 +95,7 @@ const Lecture = () => {
     }
       }
     },[departments]);
+    // this method closes alert if user press close button on alert
     const handleAlertClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
         if (reason === 'clickaway') {
             return;
@@ -88,14 +103,6 @@ const Lecture = () => {
         setopenSuccessAlert(false);
         setopenErrorAlert(false);
     };
-    const rerenderLectureTable = () => {
-        setrerenderTableFlag(true);
-    }
-
-  const [checked, setChecked] = useState<readonly LectureModel[]>([]);
-
-  const leftChecked = intersection(checked, availableLectures);
-  const rightChecked = intersection(checked, selectedLectures);
 
   const handleToggle = (value: LectureModel) => () => {
     const currentIndex = checked.indexOf(value);
@@ -120,15 +127,14 @@ const Lecture = () => {
       setChecked(union(checked, items));
     }
   };
-
+  // this method will move lectures to the selected tab
   const handleCheckedRight = () => {
-    //if(_profile?.RoleID === 1 || _profile?.RoleID === 2){
+    // increment credit as per the added lectures
       let _newlySelectedCredit: number = leftChecked.reduce((previous,current) => previous + current.credit,0);
       if((selectedCredit + _newlySelectedCredit) > allowedCredit){
         setopenErrorAlert(true);
         setMessageError("Max Allowed Credit: " + allowedCredit);
       }
-    //}
     else{
       setSelectedLectures(selectedLectures.concat(leftChecked));
       setAvailableLectures(not(availableLectures, leftChecked));
@@ -137,8 +143,9 @@ const Lecture = () => {
     }
     
   };
-
+  // this method will move lectures to avilable tab
   const handleCheckedLeft = () => {
+    // deduct credit if user move lecture to avilable tab
     if(selectedCredit > 0){
       let _newlySelectedCredit: number = rightChecked.reduce((previous,current) => previous + current.credit,0);
       setSelectedCredit(selectedCredit - _newlySelectedCredit);
@@ -147,8 +154,9 @@ const Lecture = () => {
     setSelectedLectures(not(selectedLectures, rightChecked));
     setChecked(not(checked, rightChecked));
   };
-
+  // this handler will update user's lecture for the selected department
   const handleClickSave = () => {
+    // if department is not selected, show error to the user
     if(selectedDepartment == undefined){
       setopenErrorAlert(true);
       setMessageError("Please select a department");
@@ -159,40 +167,47 @@ const Lecture = () => {
     //   setMessageError("Please select a Lecture");
     //   return;
     // }
-   
+   // if user is an admin or a teacher, update lecture for the selected department
     if(_profile?.RoleID === 1 || _profile?.RoleID === 2){
       let _payload = {Id: _profile?.RoleID == 1 ? selectedDepartment._id : _profile.DepartmentID, lectures: selectedLectures};
       DepartmentService.updateDepartmentLectures(_payload).then(x => {
         if(x){
+          // if API returns true, show success message to the user
           setopenSuccessAlert(true);
           setMessageSuccess("Successfully Saved Lectures!");
             setHideLecturePage(true);
         }
         else{
+          // if API returns false, show error message to the user
           setopenErrorAlert(true);
           setMessageError("Something went wrong, Please try again later");
         }
       });
     }
+    // if user is a student, update student's lecture 
     else if(_profile?.RoleID === 3){
       let _payload = {Id: _profile?.UserID, lectures: selectedLectures};
       UserService.updateUserLectures(_payload).then(x => {
         if(x){
+          // if API returns true, show success message to the user
           setopenSuccessAlert(true);
           setMessageSuccess("Successfully Saved Lectures!");
           setHideLecturePage(true);
         }
         else{
+           // if API returns false, show error message to the user
           setopenErrorAlert(true);
           setMessageError("Something went wrong, Please try again later");
         }
       });
     }
   };
+  // it will be called if an admin changes the department from dropdown
   const handleDepartmentChange = (event: SyntheticEvent<Element, Event>, newValue: DepartmentModel | null) => {
     setSelectedDepartment(newValue!);
     loadLecturesForTeacherAndAdmin(newValue!._id!);
 };
+// if admin changes department, this method will load availble and selected lecture of particular department
  const loadLecturesForTeacherAndAdmin = (departmentId: string) => {
   DepartmentService.getDepartmentByID(departmentId).then(x => {
     let _selectedLectures = x[0].lectures!;

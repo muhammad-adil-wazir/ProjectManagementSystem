@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+// initializing lecture schema
 const lectureSchema = new mongoose.Schema({
   lectureName: {
     type: String,
@@ -9,6 +9,7 @@ const lectureSchema = new mongoose.Schema({
   credit: {
     type: Number
   },
+    // it will just store the primary key of department instead of whole object
   departmentid: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "departments",

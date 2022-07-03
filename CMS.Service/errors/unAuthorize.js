@@ -1,3 +1,4 @@
+// custom error handler class to throw un authorized error
 class UnAuthorizedError extends Error {
   constructor(message) {
     super(message);

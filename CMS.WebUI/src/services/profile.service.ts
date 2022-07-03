@@ -1,7 +1,8 @@
+// import profile type from profile type
 import { Profile } from '../types/profile.type';
 
 export const  ProfileService = {
-    
+    // this method save user profile data in local storage
     setProfile : (profile: Profile) => {
         if (profile != undefined) {
             localStorage.setItem('UserID', profile.UserID);
@@ -11,6 +12,7 @@ export const  ProfileService = {
             localStorage.setItem('DepartmentID', profile.DepartmentID);
         }
     },
+    // this method clear user profile data from local storage
     resetProfile: () => {
         localStorage.removeItem('UserID');
         localStorage.removeItem('UserName');
@@ -18,6 +20,7 @@ export const  ProfileService = {
         localStorage.removeItem('Token');
         localStorage.removeItem('DepartmentID');
     },
+    // this method get user profile data from local storage
     getProfile: () => {
         if (localStorage.getItem('Token')) {
             let profile: Profile = {
@@ -33,6 +36,7 @@ export const  ProfileService = {
             return undefined;
         }
     },
+    // this method check whether user is authenticated or not
     isAuthencticated : () => {
         return localStorage.getItem('Token') != null;
     }
