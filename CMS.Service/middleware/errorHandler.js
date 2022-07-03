@@ -1,3 +1,4 @@
+// middleware method which is using custom error handler
 const errorHandler = (err, req, res, next) => {
   let customError = {
     statusCode: err.statusCode || 500,

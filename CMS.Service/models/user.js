@@ -1,6 +1,8 @@
+// loading mongoose library to communicate with mongodb
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
 
+// initializing user schema
+// there are some common columns which are being used by different entities like teacher and student
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -25,10 +27,12 @@ const userSchema = new mongoose.Schema({
     ref: "departments",
     required: false,
 },
+// gpa column is used by the user who is student
   gpa: {
     type: Number,
     required: false,
   },
+  // lectures column is used by the user who is student
   lectures: [
     {
       type: mongoose.Schema.Types.ObjectId,

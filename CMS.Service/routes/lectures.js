@@ -1,4 +1,6 @@
+// express framework is used in this project
 const express = require("express");
+// loading middleware to bind with with all incoming requests
 const authCheck = require("../middleware/checkAuth");
 const {
   getAllLectures,getAllLectureByDepartmentID
