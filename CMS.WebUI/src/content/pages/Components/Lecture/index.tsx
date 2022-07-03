@@ -212,8 +212,10 @@ const Lecture = () => {
   DepartmentService.getDepartmentByID(departmentId).then(x => {
     let _selectedLectures = x[0].lectures!;
     setSelectedLectures(_selectedLectures);
+    // calculating credit of selected lectures
     let _selectedCredit = x[0].lectures!.reduce((accumulator, current) => accumulator + current.credit, 0);
     setSelectedCredit(_selectedCredit);
+    
     LectureService.getAllLectureByDepartmentID(departmentId).then(availableLecs => {
       let _selectedLectureIDs = _selectedLectures.map(x => x._id);
       let _availableLectures: LectureModel[] = new Array();
@@ -226,7 +228,7 @@ const Lecture = () => {
     });
 });
  }
-
+ // a custom function which will show the list of available and selected lectures
   const customList = (title: React.ReactNode, items: readonly LectureModel[]) => (
     <Card>
       <CardHeader
@@ -289,6 +291,7 @@ const Lecture = () => {
   );
     return (
         <>
+         {/*  using snackbar material component wit alert component to show alerts*/}
          <Snackbar open={openSuccessAlert} autoHideDuration={5000} onClose={handleAlertClose}>
                 <Alert onClose={handleAlertClose} variant="filled" severity="success" sx={{ width: '100%' }}>
                     {messageSuccess}
@@ -299,6 +302,7 @@ const Lecture = () => {
                     {messageErorr}
                 </Alert>
             </Snackbar>
+             {/* hiding other content in the page and showing post submission screen*/}
             <Card hidden={hideLecturePage == false} sx={{minHeight:"30vh", m:"100px auto",p:5, width:"800px",textAlign:"center"}}>
               <CardContent>
                 <h1>Thank you for your submission!</h1>
@@ -310,6 +314,7 @@ const Lecture = () => {
                 <Container maxWidth="lg">
                 <Grid container direction="row" justifyContent="center" alignItems="stretch" spacing={3}>
                     <Grid item xs={6}>
+                       {/*  using autocomplete material component to show departments*/}
                         <Autocomplete disabled={isAdmin == false}
                             onChange={handleDepartmentChange}
                             value={selectedDepartment} disablePortal style={{ width: '94%' }}
